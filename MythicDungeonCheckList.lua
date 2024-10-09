@@ -106,10 +106,8 @@ end
 
 -- 체크리스트 업데이트 함수
 function MythicDungeonCheckList.UpdateCheckList(dungeonName)
-    print("UpdateCheckList: Updating Checklist for", dungeonName)
     local settings = MythicDungeonDB[dungeonName]
     if not settings then
-        print("UpdateCheckList: No settings found for dungeon", dungeonName)
         return
     end
 
@@ -368,7 +366,6 @@ local eventFrame = CreateFrame("Frame")
 -- 이벤트 등록
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    print("Event Triggered:", event)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         MythicDungeonCheckList:OnPartyListed()
     end
@@ -377,6 +374,13 @@ end)
 -- 활동 ID와 던전 이름 매핑 테이블 생성
 local activityIDToDungeonName = {
     [1290] = "그림 바톨",
+    [1284] = "메아리의 도시 아라카라",
+    [1285] = "새벽인도자호",
+    [1287] = "바위금고",
+    [1288] = "실타래의 도시",
+    [703] = "티르너 사이드의 안개",
+    [713] = "죽음의 상흔",
+    [534] = "보랄러스 공성전"
     -- 다른 던전의 활동 ID와 이름을 추가합니다.
     -- 예시:
     -- [activityID] = "던전 이름",
@@ -402,15 +406,11 @@ function MythicDungeonCheckList:OnPartyListed()
         return
     end
 
-    print("OnPartyListed: Dungeon Name -", dungeonName)
-
     -- 던전 이름이 유효한지 확인
     if not MythicDungeonDB[dungeonName] then
         print("MythicDungeonCheckList: Unknown dungeon name in party listing.")
         return
     end
-
-    print("OnPartyListed: Opening Checklist UI for", dungeonName)
 
     -- 체크리스트 UI 열기
     MythicDungeonCheckList.OpenCheckListUI(dungeonName)
