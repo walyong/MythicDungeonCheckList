@@ -126,8 +126,8 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local index = 1  -- 항목 순서를 위한 변수
 
     -- 1. 영웅심과 전투부활 체크 (우선순위 1)
-    local heroismCheck = CreateCheckListItem(checklist, "Heroism Required", index)
-    local battleResCheck = CreateCheckListItem(checklist, "Battle Res Required", index + 1)
+    local heroismCheck = CreateCheckListItem(checklist, "영웅심 필요", index)
+    local battleResCheck = CreateCheckListItem(checklist, "전투 부활 필요", index + 1)
 
     -- 영웅심 및 전투부활 스킬 확인
     local hasHeroism, hasBattleRes = false, false
@@ -151,10 +151,11 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     index = index + 2  -- 다음 체크리스트 시작 지점 설정
 
     -- 2. 던전별 해제 직업 체크 (우선순위 2)
+    -- 요구되는 해제 갯수도 함께 표기
 
     -- 저주 해제 체크
     if settings.mustHaveCurse > 0 then
-        local curseRemovalCheck = CreateCheckListItem(checklist, "Curse Removal (Must Have)", index)
+        local curseRemovalCheck = CreateCheckListItem(checklist, "저주 해제 필요 (" .. settings.mustHaveCurse .. "명)", index)
         local curseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
@@ -163,7 +164,6 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
                 curseRemovalCount = curseRemovalCount + 1
             end
         end
-        -- 파티 내 해제 가능한 직업 수가 던전에서 요구하는 수를 만족하는지 확인
         curseRemovalCheck:SetChecked(curseRemovalCount >= settings.mustHaveCurse)
         checklist.items[index] = curseRemovalCheck
         index = index + 1
@@ -171,7 +171,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 마법 해제 체크
     if settings.mustHaveMagic > 0 then
-        local magicRemovalCheck = CreateCheckListItem(checklist, "Magic Removal (Must Have)", index)
+        local magicRemovalCheck = CreateCheckListItem(checklist, "마법 해제 필요 (" .. settings.mustHaveMagic .. "명)", index)
         local magicRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
@@ -187,7 +187,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 독 해제 체크
     if settings.mustHavePoison > 0 then
-        local poisonRemovalCheck = CreateCheckListItem(checklist, "Poison Removal (Must Have)", index)
+        local poisonRemovalCheck = CreateCheckListItem(checklist, "독 해제 필요 (" .. settings.mustHavePoison .. "명)", index)
         local poisonRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
@@ -203,7 +203,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 질병 해제 체크
     if settings.mustHaveDisease > 0 then
-        local diseaseRemovalCheck = CreateCheckListItem(checklist, "Disease Removal (Must Have)", index)
+        local diseaseRemovalCheck = CreateCheckListItem(checklist, "질병 해제 필요 (" .. settings.mustHaveDisease .. "명)", index)
         local diseaseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
@@ -219,7 +219,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 격노 해제 체크
     if settings.mustHaveEnrage > 0 then
-        local enrageRemovalCheck = CreateCheckListItem(checklist, "Enrage Dispel (Must Have)", index)
+        local enrageRemovalCheck = CreateCheckListItem(checklist, "격노 해제 필요 (" .. settings.mustHaveEnrage .. "명)", index)
         local enrageRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
@@ -261,7 +261,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 근접 유닛 제한 체크
     if settings.maxMeleeUnits then
-        local meleeLimitCheck = CreateCheckListItem(checklist, "Max Melee Units (incl. Tanks)", index)
+        local meleeLimitCheck = CreateCheckListItem(checklist, "최대 근접 유닛 (" .. settings.maxMeleeUnits .. "명)", index)
         meleeLimitCheck:SetChecked(meleeCount <= settings.maxMeleeUnits)
         checklist.items[index] = meleeLimitCheck
         index = index + 1
@@ -269,13 +269,12 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 원거리 유닛 제한 체크
     if settings.maxRangedUnits then
-        local rangedLimitCheck = CreateCheckListItem(checklist, "Max Ranged Units", index)
+        local rangedLimitCheck = CreateCheckListItem(checklist, "최대 원거리 유닛 (" .. settings.maxRangedUnits .. "명)", index)
         rangedLimitCheck:SetChecked(rangedCount <= settings.maxRangedUnits)
         checklist.items[index] = rangedLimitCheck
         index = index + 1
     end
 end
-
 
 -- 프레임 위치 저장 함수 추가
 function MythicDungeonCheckList.SaveFramePositions()
