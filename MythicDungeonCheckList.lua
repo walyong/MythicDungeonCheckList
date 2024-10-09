@@ -1,45 +1,48 @@
--- MythicCheckList.lua
+-- MythicDungeonCheckList.lua
+
+-- 네임스페이스 생성
+local MythicDungeonCheckList = {}
 
 -- 네임스페이스에서 데이터 가져오기
-local DefaultDungeonSettings = MythicCheckListData.DefaultDungeonSettings
+local DefaultDungeonSettings = MythicDungeonCheckListData.DefaultDungeonSettings
 
--- 체크리스트 항목 생성 함수
-function CreateCheckListItem(parent, text, index)
+-- 테이블 깊은 복사 함수 (고유한 이름으로 변경하고 지역 함수로 정의)
+local function DeepCopyTable(t, seen)
+    if type(t) ~= 'table' then return t end
+    if not seen then seen = {} end
+    if seen[t] then return seen[t] end
+    local copy = {}
+    seen[t] = copy
+    for k, v in pairs(t) do
+        copy[DeepCopyTable(k, seen)] = DeepCopyTable(v, seen)
+    end
+    return setmetatable(copy, getmetatable(t))
+end
+
+-- 체크리스트 항목 생성 함수 (지역 함수로 정의)
+local function CreateCheckListItem(parent, text, index)
     local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     check:SetPoint("TOPLEFT", 20, -30 * index)
     check.text:SetText(text)
     return check
 end
 
--- 테이블 깊은 복사 함수
-function CopyTable(t)
-    local copy = {}
-    for k, v in pairs(t) do
-        if type(v) == "table" then
-            copy[k] = CopyTable(v)
-        else
-            copy[k] = v
-        end
-    end
-    return copy
-end
-
--- 근접 힐러 확인 함수
-function IsMeleeHealer(class, spec)
+-- 근접 힐러 확인 함수 (지역 함수로 정의)
+local function IsMeleeHealer(class, spec)
     return (class == "PALADIN" and spec == 65) or    -- 신성 성기사
            (class == "MONK" and spec == 270)         -- 운무 수도사
 end
 
--- 원거리 힐러 확인 함수
-function IsRangedHealer(class, spec)
+-- 원거리 힐러 확인 함수 (지역 함수로 정의)
+local function IsRangedHealer(class, spec)
     return (class == "DRUID" and spec == 105) or           -- 회복 드루이드
            (class == "PRIEST" and (spec == 256 or spec == 257)) or  -- 수양 및 신성 사제
            (class == "SHAMAN" and spec == 264) or           -- 복원 주술사
            (class == "EVOKER" and spec == 1468)             -- Preservation Evoker
 end
 
--- 근접 딜러 확인 함수
-function IsMeleeDPS(class, spec)
+-- 근접 딜러 확인 함수 (지역 함수로 정의)
+local function IsMeleeDPS(class, spec)
     local meleeClasses = {
         ["DEATHKNIGHT"] = {250, 251, 252}, -- 혈기, 냉기, 부정
         ["DEMONHUNTER"] = {577},           -- 파멸
@@ -54,8 +57,8 @@ function IsMeleeDPS(class, spec)
     return meleeClasses[class] and tContains(meleeClasses[class], spec)
 end
 
--- 원거리 딜러 확인 함수
-function IsRangedDPS(class, spec)
+-- 원거리 딜러 확인 함수 (지역 함수로 정의)
+local function IsRangedDPS(class, spec)
     local rangedClasses = {
         ["DRUID"] = {102},                 -- 조화
         ["HUNTER"] = {253, 254},           -- 야수, 사격
@@ -68,8 +71,8 @@ function IsRangedDPS(class, spec)
     return rangedClasses[class] and tContains(rangedClasses[class], spec)
 end
 
--- 격노 해제를 할 수 있는지 확인하는 함수
-function CanDispelEnrage(class)
+-- 격노 해제를 할 수 있는지 확인하는 함수 (지역 함수로 정의)
+local function CanDispelEnrage(class)
     return (class == "HUNTER" and IsSpellKnown(19801)) or   -- 사냥꾼 - 평정의 사격
            (class == "DRUID" and IsSpellKnown(2908)) or     -- 드루이드 - 달래기
            (class == "ROGUE" and IsSpellKnown(5938)) or     -- 도적 - 마취의 일격
@@ -77,11 +80,11 @@ function CanDispelEnrage(class)
 end
 
 -- 기본 던전 설정을 적용하는 함수
-function InitializeDungeonSettings()
+function MythicDungeonCheckList.InitializeDungeonSettings()
     MythicDungeonDB = MythicDungeonDB or {}
     for dungeonName, settings in pairs(DefaultDungeonSettings) do
         if not MythicDungeonDB[dungeonName] then
-            MythicDungeonDB[dungeonName] = CopyTable(settings)
+            MythicDungeonDB[dungeonName] = DeepCopyTable(settings)
         else
             -- 기존 설정에 새로운 해제 유형이 없으면 기본값으로 추가
             for key, value in pairs(settings) do
@@ -94,14 +97,14 @@ function InitializeDungeonSettings()
 end
 
 -- 기본 설정으로 재설정하는 함수
-function ResetDungeonSettings()
+function MythicDungeonCheckList.ResetDungeonSettings()
     MythicDungeonDB = {}
-    InitializeDungeonSettings()
+    MythicDungeonCheckList.InitializeDungeonSettings()
     print("All dungeon settings have been reset to default values.")
 end
 
 -- 체크리스트 업데이트 함수
-function UpdateCheckList(dungeonName)
+function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local settings = MythicDungeonDB[dungeonName]
     local checklist = ChecklistUI
 
@@ -310,7 +313,7 @@ function UpdateCheckList(dungeonName)
 end
 
 -- 체크리스트 UI 생성 함수
-function OpenCheckListUI(dungeonName)
+function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
     if not ChecklistUI then
         -- 체크리스트 UI 생성
         ChecklistUI = CreateFrame("Frame", "ChecklistUI", UIParent, "BasicFrameTemplate")
@@ -330,23 +333,26 @@ function OpenCheckListUI(dungeonName)
         ChecklistUI.eventFrame:SetScript("OnEvent", function(self, event, arg1)
             if event == "PLAYER_SPECIALIZATION_CHANGED" then
                 if UnitInParty(arg1) or arg1 == "player" then
-                    UpdateCheckList(dungeonName)
+                    MythicDungeonCheckList.UpdateCheckList(dungeonName)
                 end
             elseif event == "GROUP_ROSTER_UPDATE" then
-                UpdateCheckList(dungeonName)
+                MythicDungeonCheckList.UpdateCheckList(dungeonName)
             elseif event == "INSPECT_READY" then
-                UpdateCheckList(dungeonName)
+                MythicDungeonCheckList.UpdateCheckList(dungeonName)
             end
         end)
     end
 
     -- 체크리스트 업데이트
-    UpdateCheckList(dungeonName)
+    MythicDungeonCheckList.UpdateCheckList(dungeonName)
 end
 
 -- 게임 시작 시 기본 던전 설정 초기화
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function(self, event)
-    InitializeDungeonSettings()  -- 던전 기본 설정 초기화
+    MythicDungeonCheckList.InitializeDungeonSettings()  -- 던전 기본 설정 초기화
 end)
+
+-- 네임스페이스를 전역 변수로 설정 (다른 파일에서 접근할 수 있도록)
+_G["MythicDungeonCheckList"] = MythicDungeonCheckList

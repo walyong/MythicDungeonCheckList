@@ -1,10 +1,67 @@
 -- DungeonSettingsUI.lua
 
 -- 네임스페이스에서 데이터 가져오기
-local DefaultDungeonSettings = MythicCheckListData.DefaultDungeonSettings
+local DefaultDungeonSettings = MythicDungeonCheckListData.DefaultDungeonSettings
+
+-- 네임스페이스 가져오기
+local MythicDungeonCheckList = _G["MythicDungeonCheckList"]
+
+-- 테이블 깊은 복사 함수 (MythicDungeonCheckList.lua에서 가져옴)
+local function DeepCopyTable(t, seen)
+    if type(t) ~= 'table' then return t end
+    if not seen then seen = {} end
+    if seen[t] then return seen[t] end
+    local copy = {}
+    seen[t] = copy
+    for k, v in pairs(t) do
+        copy[DeepCopyTable(k, seen)] = DeepCopyTable(v, seen)
+    end
+    return setmetatable(copy, getmetatable(t))
+end
+
+-- 필요한 변수들을 저장할 테이블
+local UIElements = {}
+
+-- 설정 불러오기 함수 (네임스페이스에 추가)
+function MythicDungeonCheckList.LoadDungeonSettings(dungeon)
+    local settings = MythicDungeonDB[dungeon]
+    if not settings then return end
+
+    local mustHaveCurse = UIElements.mustHaveCurse
+    local mustHaveMagic = UIElements.mustHaveMagic
+    local mustHavePoison = UIElements.mustHavePoison
+    local mustHaveDisease = UIElements.mustHaveDisease
+    local mustHaveEnrage = UIElements.mustHaveEnrage
+    local maxMeleeUnitsCheck = UIElements.maxMeleeUnitsCheck
+    local maxMeleeUnitsInput = UIElements.maxMeleeUnitsInput
+    local maxRangedUnitsCheck = UIElements.maxRangedUnitsCheck
+    local maxRangedUnitsInput = UIElements.maxRangedUnitsInput
+
+    mustHaveCurse:SetChecked(settings.mustHaveCurse == 1)
+    mustHaveMagic:SetChecked(settings.mustHaveMagic == 1)
+    mustHavePoison:SetChecked(settings.mustHavePoison == 1)
+    mustHaveDisease:SetChecked(settings.mustHaveDisease == 1)
+    mustHaveEnrage:SetChecked(settings.mustHaveEnrage == 1)
+
+    if settings.maxMeleeUnits then
+        maxMeleeUnitsCheck:SetChecked(true)
+        maxMeleeUnitsInput:SetText(tostring(settings.maxMeleeUnits))
+    else
+        maxMeleeUnitsCheck:SetChecked(false)
+        maxMeleeUnitsInput:SetText("")
+    end
+
+    if settings.maxRangedUnits then
+        maxRangedUnitsCheck:SetChecked(true)
+        maxRangedUnitsInput:SetText(tostring(settings.maxRangedUnits))
+    else
+        maxRangedUnitsCheck:SetChecked(false)
+        maxRangedUnitsInput:SetText("")
+    end
+end
 
 -- 던전 설정 UI 생성 함수
-function OpenDungeonSettingsUI()
+function MythicDungeonCheckList.OpenDungeonSettingsUI()
     local settingsFrame = CreateFrame("Frame", "DungeonSettingsUI", UIParent, "BasicFrameTemplate")
     settingsFrame:SetSize(400, 700)
     settingsFrame:SetPoint("CENTER")
@@ -39,7 +96,7 @@ function OpenDungeonSettingsUI()
                 UIDropDownMenu_SetSelectedID(dungeonDropdown, i)
                 UIDropDownMenu_SetText(dungeonDropdown, dungeon)
                 selectedDungeon = dungeon
-                LoadDungeonSettings(dungeon)
+                MythicDungeonCheckList.LoadDungeonSettings(dungeon)
             end
             UIDropDownMenu_AddButton(info)
         end
@@ -89,31 +146,16 @@ function OpenDungeonSettingsUI()
     maxRangedUnitsInput:SetNumeric(true)
     maxRangedUnitsInput:SetAutoFocus(false)
 
-    -- 설정 불러오기 함수
-    function LoadDungeonSettings(dungeon)
-        local settings = MythicDungeonDB[dungeon]
-        mustHaveCurse:SetChecked(settings.mustHaveCurse == 1)
-        mustHaveMagic:SetChecked(settings.mustHaveMagic == 1)
-        mustHavePoison:SetChecked(settings.mustHavePoison == 1)
-        mustHaveDisease:SetChecked(settings.mustHaveDisease == 1)
-        mustHaveEnrage:SetChecked(settings.mustHaveEnrage == 1)
-
-        if settings.maxMeleeUnits then
-            maxMeleeUnitsCheck:SetChecked(true)
-            maxMeleeUnitsInput:SetText(tostring(settings.maxMeleeUnits))
-        else
-            maxMeleeUnitsCheck:SetChecked(false)
-            maxMeleeUnitsInput:SetText("")
-        end
-
-        if settings.maxRangedUnits then
-            maxRangedUnitsCheck:SetChecked(true)
-            maxRangedUnitsInput:SetText(tostring(settings.maxRangedUnits))
-        else
-            maxRangedUnitsCheck:SetChecked(false)
-            maxRangedUnitsInput:SetText("")
-        end
-    end
+    -- UI 요소들을 저장
+    UIElements.mustHaveCurse = mustHaveCurse
+    UIElements.mustHaveMagic = mustHaveMagic
+    UIElements.mustHavePoison = mustHavePoison
+    UIElements.mustHaveDisease = mustHaveDisease
+    UIElements.mustHaveEnrage = mustHaveEnrage
+    UIElements.maxMeleeUnitsCheck = maxMeleeUnitsCheck
+    UIElements.maxMeleeUnitsInput = maxMeleeUnitsInput
+    UIElements.maxRangedUnitsCheck = maxRangedUnitsCheck
+    UIElements.maxRangedUnitsInput = maxRangedUnitsInput
 
     -- 저장 버튼
     local saveButton = CreateFrame("Button", nil, settingsFrame, "UIPanelButtonTemplate")
@@ -153,8 +195,8 @@ function OpenDungeonSettingsUI()
         end
 
         -- 선택한 던전의 설정을 기본값으로 재설정
-        MythicDungeonDB[selectedDungeon] = CopyTable(DefaultDungeonSettings[selectedDungeon])
-        LoadDungeonSettings(selectedDungeon)
+        MythicDungeonDB[selectedDungeon] = DeepCopyTable(DefaultDungeonSettings[selectedDungeon])
+        MythicDungeonCheckList.LoadDungeonSettings(selectedDungeon)
         print(selectedDungeon .. " settings have been reset to default.")
     end)
 
@@ -169,9 +211,9 @@ function OpenDungeonSettingsUI()
             button1 = "Yes",
             button2 = "No",
             OnAccept = function()
-                ResetDungeonSettings()
+                MythicDungeonCheckList.ResetDungeonSettings()
                 if selectedDungeon then
-                    LoadDungeonSettings(selectedDungeon)
+                    MythicDungeonCheckList.LoadDungeonSettings(selectedDungeon)
                 end
             end,
             timeout = 0,
@@ -182,3 +224,6 @@ function OpenDungeonSettingsUI()
         StaticPopup_Show("RESET_ALL_CONFIRM")
     end)
 end
+
+-- 네임스페이스를 전역 변수로 설정 (다른 파일에서 접근할 수 있도록)
+_G["MythicDungeonCheckList"] = MythicDungeonCheckList

@@ -1,10 +1,10 @@
 -- DungeonData.lua
 
 -- 네임스페이스 생성
-MythicCheckListData = {}
+MythicDungeonCheckListData = {}
 
 -- 기본 던전 설정 (변경되지 않는 기본값)
-MythicCheckListData.DefaultDungeonSettings = {
+MythicDungeonCheckListData.DefaultDungeonSettings = {
     ["메아리의 도시 아라카라"] = {
         maxMeleeUnits = 2,  -- 최대 근접 유닛을 2로 설정
         maxRangedUnits = 5,
