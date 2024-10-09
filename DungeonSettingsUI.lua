@@ -9,12 +9,12 @@ local MythicDungeonCheckList = _G["MythicDungeonCheckList"]
 -- 테이블 깊은 복사 함수 (MythicDungeonCheckList.lua에서 가져옴)
 local function DeepCopyTable(t, seen)
     if type(t) ~= 'table' then return t end
-    if not seen then seen = {} end
-    if seen[t] then return seen[t] end
+    if seen and seen[t] then return seen[t] end
+    local s = seen or {}
     local copy = {}
-    seen[t] = copy
+    s[t] = copy
     for k, v in pairs(t) do
-        copy[DeepCopyTable(k, seen)] = DeepCopyTable(v, seen)
+        copy[DeepCopyTable(k, s)] = DeepCopyTable(v, s)
     end
     return setmetatable(copy, getmetatable(t))
 end
@@ -60,11 +60,52 @@ function MythicDungeonCheckList.LoadDungeonSettings(dungeon)
     end
 end
 
+-- 프레임 위치 저장 함수 추가 (MythicDungeonCheckList 네임스페이스에 추가)
+function MythicDungeonCheckList.SaveSettingsFramePosition()
+    MythicDungeonCheckListPositions = MythicDungeonCheckListPositions or {}
+    if MythicDungeonCheckListSettingsFrame then
+        local point, relativeTo, relativePoint, xOfs, yOfs = MythicDungeonCheckListSettingsFrame:GetPoint()
+        MythicDungeonCheckListPositions.SettingsFrame = { point, relativePoint, xOfs, yOfs }
+    end
+end
+
+-- 프레임 위치 로드 함수 추가 (MythicDungeonCheckList 네임스페이스에 추가)
+function MythicDungeonCheckList.LoadSettingsFramePosition()
+    if MythicDungeonCheckListPositions and MythicDungeonCheckListPositions.SettingsFrame then
+        local pos = MythicDungeonCheckListPositions.SettingsFrame
+        if MythicDungeonCheckListSettingsFrame then
+            MythicDungeonCheckListSettingsFrame:ClearAllPoints()
+            MythicDungeonCheckListSettingsFrame:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
+        end
+    end
+end
+
 -- 던전 설정 UI 생성 함수
 function MythicDungeonCheckList.OpenDungeonSettingsUI()
-    local settingsFrame = CreateFrame("Frame", "DungeonSettingsUI", UIParent, "BasicFrameTemplate")
+    -- 이미 열려 있는 경우 포커스를 이동합니다.
+    if MythicDungeonCheckListSettingsFrame and MythicDungeonCheckListSettingsFrame:IsShown() then
+        MythicDungeonCheckListSettingsFrame:SetFrameLevel(100)  -- 가장 위로 가져오기
+        return
+    end
+
+    local settingsFrame = CreateFrame("Frame", "MythicDungeonCheckListSettingsFrame", UIParent, "BasicFrameTemplate")
     settingsFrame:SetSize(400, 700)
     settingsFrame:SetPoint("CENTER")
+
+    -- 프레임을 움직일 수 있도록 설정
+    settingsFrame:SetMovable(true)
+    settingsFrame:EnableMouse(true)
+    settingsFrame:RegisterForDrag("LeftButton")
+    settingsFrame:SetScript("OnDragStart", settingsFrame.StartMoving)
+    settingsFrame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        -- 프레임 위치 저장
+        MythicDungeonCheckList.SaveSettingsFramePosition()
+    end)
+    settingsFrame:SetClampedToScreen(true)
+
+    -- 프레임의 Strata를 설정하여 다른 UI 위로 가져오기
+    settingsFrame:SetFrameStrata("DIALOG")
 
     local title = settingsFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     title:SetPoint("TOP", settingsFrame, "TOP", 0, -10)
@@ -223,7 +264,14 @@ function MythicDungeonCheckList.OpenDungeonSettingsUI()
         }
         StaticPopup_Show("RESET_ALL_CONFIRM")
     end)
+
+    -- 프레임 위치 로드
+    MythicDungeonCheckList.LoadSettingsFramePosition()
 end
 
--- 네임스페이스를 전역 변수로 설정 (다른 파일에서 접근할 수 있도록)
-_G["MythicDungeonCheckList"] = MythicDungeonCheckList
+-- 슬래시 명령어를 등록하여 설정 UI를 열 수 있도록 합니다.
+SLASH_MYTHICDUNGEONCHECKLIST1 = '/mythicdungeonchecklist'
+SLASH_MYTHICDUNGEONCHECKLIST2 = '/mdcl'
+SlashCmdList['MYTHICDUNGEONCHECKLIST'] = function(msg)
+    MythicDungeonCheckList.OpenDungeonSettingsUI()
+end

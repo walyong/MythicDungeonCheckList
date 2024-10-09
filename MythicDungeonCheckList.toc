@@ -3,7 +3,7 @@
 ## Notes: This addon helps manage dungeon tactics and party requirements for Mythic+.
 ## Author: Matthew
 ## Version: 1.1
-## SavedVariables: MythicDungeonDB
+## SavedVariables: MythicDungeonDB, MythicDungeonCheckListPositions
 
 DungeonData.lua
 MythicDungeonCheckList.lua
