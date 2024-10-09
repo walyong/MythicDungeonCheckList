@@ -4,6 +4,7 @@
 ## Author: Matthew
 ## Version: 1.1
 ## SavedVariables: MythicDungeonDB, MythicDungeonCheckListPositions
+## OptionalDeps: ElvUI
 
 DungeonData.lua
 MythicDungeonCheckList.lua
