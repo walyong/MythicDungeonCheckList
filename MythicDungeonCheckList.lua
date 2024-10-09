@@ -6,13 +6,6 @@ local MythicDungeonCheckList = {}
 -- 네임스페이스에서 데이터 가져오기
 local DefaultDungeonSettings = MythicDungeonCheckListData.DefaultDungeonSettings
 
--- ElvUI 통합을 위한 변수 선언
-local E, L, V, P, G
-
-if IsAddOnLoaded("ElvUI") then
-    E, L, V, P, G = unpack(ElvUI)
-end
-
 -- 테이블 깊은 복사 함수 (지역 함수로 정의하고 이름 변경)
 local function DeepCopyTable(t, seen)
     if type(t) ~= 'table' then return t end
@@ -31,14 +24,6 @@ local function CreateCheckListItem(parent, text, index)
     local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     check:SetPoint("TOPLEFT", 20, -30 * index)
     check.text:SetText(text)
-    check:Disable()  -- 체크박스를 비활성화하여 사용자가 체크할 수 없도록 설정
-
-    -- ElvUI 스킨 적용
-    if E then
-        local S = E:GetModule('Skins')
-        S:HandleCheckBox(check)
-    end
-
     return check
 end
 
@@ -115,13 +100,17 @@ end
 function MythicDungeonCheckList.ResetDungeonSettings()
     MythicDungeonDB = {}
     MythicDungeonCheckList.InitializeDungeonSettings()
-    print("모든 던전 설정이 기본값으로 재설정되었습니다.")
+    print("All dungeon settings have been reset to default values.")
 end
 
 -- 체크리스트 업데이트 함수
 function MythicDungeonCheckList.UpdateCheckList(dungeonName)
+    print("UpdateCheckList: Updating Checklist for", dungeonName)
     local settings = MythicDungeonDB[dungeonName]
-    if not settings then return end
+    if not settings then
+        print("UpdateCheckList: No settings found for dungeon", dungeonName)
+        return
+    end
 
     local checklist = ChecklistUI
 
@@ -136,17 +125,17 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local index = 1  -- 항목 순서를 위한 변수
 
     -- 1. 영웅심과 전투부활 체크 (우선순위 1)
-    local heroismCheck = CreateCheckListItem(checklist, "영웅심 또는 시간 왜곡 필요", index)
-    local battleResCheck = CreateCheckListItem(checklist, "전투 부활 필요", index + 1)
+    local heroismCheck = CreateCheckListItem(checklist, "Heroism Required", index)
+    local battleResCheck = CreateCheckListItem(checklist, "Battle Res Required", index + 1)
 
     -- 영웅심 및 전투부활 스킬 확인
     local hasHeroism, hasBattleRes = false, false
     for i = 1, GetNumGroupMembers() do
         local unit
         if IsInRaid() then
-            unit = "raid" .. i
+            unit = "raid"..i
         else
-            unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+            unit = (i == GetNumGroupMembers()) and "player" or "party"..i
         end
         local _, class = UnitClass(unit)
         if class == "SHAMAN" or class == "MAGE" or class == "HUNTER" or class == "EVOKER" then
@@ -169,105 +158,114 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 저주 해제 체크
     if settings.mustHaveCurse > 0 then
-        local curseRemovalCheck = CreateCheckListItem(checklist, "저주 해제 필요 (" .. settings.mustHaveCurse .. "명)", index)
-        local curseRemovalCount = 0
+        local curseRemovalCheck = CreateCheckListItem(checklist, "Curse Removal (Must Have)", index)
+        local hasCurseRemoval = false
         for i = 1, GetNumGroupMembers() do
             local unit
             if IsInRaid() then
-                unit = "raid" .. i
+                unit = "raid"..i
             else
-                unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             end
             local _, class = UnitClass(unit)
             if class == "MAGE" or class == "DRUID" or class == "SHAMAN" then
-                curseRemovalCount = curseRemovalCount + 1
+                hasCurseRemoval = true
+                break
             end
         end
-        curseRemovalCheck:SetChecked(curseRemovalCount >= settings.mustHaveCurse)
+        curseRemovalCheck:SetChecked(hasCurseRemoval)
         checklist.items[index] = curseRemovalCheck
         index = index + 1
     end
 
     -- 마법 해제 체크
     if settings.mustHaveMagic > 0 then
-        local magicRemovalCheck = CreateCheckListItem(checklist, "마법 해제 필요 (" .. settings.mustHaveMagic .. "명)", index)
+        local magicRemovalCheck = CreateCheckListItem(checklist, "Magic Removal (Must Have)", index)
+        local hasMagicRemoval = false
         local magicRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
             local unit
             if IsInRaid() then
-                unit = "raid" .. i
+                unit = "raid"..i
             else
-                unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             end
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "SHAMAN" or class == "DRUID" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
                 magicRemovalCount = magicRemovalCount + 1
+                if magicRemovalCount >= settings.mustHaveMagic then
+                    hasMagicRemoval = true
+                    break
+                end
             end
         end
-        magicRemovalCheck:SetChecked(magicRemovalCount >= settings.mustHaveMagic)
+        magicRemovalCheck:SetChecked(hasMagicRemoval)
         checklist.items[index] = magicRemovalCheck
         index = index + 1
     end
 
     -- 독 해제 체크
     if settings.mustHavePoison > 0 then
-        local poisonRemovalCheck = CreateCheckListItem(checklist, "독 해제 필요 (" .. settings.mustHavePoison .. "명)", index)
-        local poisonRemovalCount = 0
+        local poisonRemovalCheck = CreateCheckListItem(checklist, "Poison Removal (Must Have)", index)
+        local hasPoisonRemoval = false
         for i = 1, GetNumGroupMembers() do
             local unit
             if IsInRaid() then
-                unit = "raid" .. i
+                unit = "raid"..i
             else
-                unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             end
             local _, class = UnitClass(unit)
             if class == "DRUID" or class == "SHAMAN" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
-                poisonRemovalCount = poisonRemovalCount + 1
+                hasPoisonRemoval = true
+                break
             end
         end
-        poisonRemovalCheck:SetChecked(poisonRemovalCount >= settings.mustHavePoison)
+        poisonRemovalCheck:SetChecked(hasPoisonRemoval)
         checklist.items[index] = poisonRemovalCheck
         index = index + 1
     end
 
     -- 질병 해제 체크
     if settings.mustHaveDisease > 0 then
-        local diseaseRemovalCheck = CreateCheckListItem(checklist, "질병 해제 필요 (" .. settings.mustHaveDisease .. "명)", index)
-        local diseaseRemovalCount = 0
+        local diseaseRemovalCheck = CreateCheckListItem(checklist, "Disease Removal (Must Have)", index)
+        local hasDiseaseRemoval = false
         for i = 1, GetNumGroupMembers() do
             local unit
             if IsInRaid() then
-                unit = "raid" .. i
+                unit = "raid"..i
             else
-                unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             end
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "PALADIN" or class == "MONK" then
-                diseaseRemovalCount = diseaseRemovalCount + 1
+                hasDiseaseRemoval = true
+                break
             end
         end
-        diseaseRemovalCheck:SetChecked(diseaseRemovalCount >= settings.mustHaveDisease)
+        diseaseRemovalCheck:SetChecked(hasDiseaseRemoval)
         checklist.items[index] = diseaseRemovalCheck
         index = index + 1
     end
 
     -- 격노 해제 체크
     if settings.mustHaveEnrage > 0 then
-        local enrageRemovalCheck = CreateCheckListItem(checklist, "격노 해제 필요 (" .. settings.mustHaveEnrage .. "명)", index)
-        local enrageRemovalCount = 0
+        local enrageRemovalCheck = CreateCheckListItem(checklist, "Enrage Dispel (Must Have)", index)
+        local hasEnrageRemoval = false
         for i = 1, GetNumGroupMembers() do
             local unit
             if IsInRaid() then
-                unit = "raid" .. i
+                unit = "raid"..i
             else
-                unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             end
             local _, class = UnitClass(unit)
             if CanDispelEnrage(class) then
-                enrageRemovalCount = enrageRemovalCount + 1
+                hasEnrageRemoval = true
+                break
             end
         end
-        enrageRemovalCheck:SetChecked(enrageRemovalCount >= settings.mustHaveEnrage)
+        enrageRemovalCheck:SetChecked(hasEnrageRemoval)
         checklist.items[index] = enrageRemovalCheck
         index = index + 1
     end
@@ -278,9 +276,9 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     for i = 1, GetNumGroupMembers() do
         local unit
         if IsInRaid() then
-            unit = "raid" .. i
+            unit = "raid"..i
         else
-            unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+            unit = (i == GetNumGroupMembers()) and "player" or "party"..i
         end
         local role = UnitGroupRolesAssigned(unit)
         local _, class = UnitClass(unit)
@@ -305,7 +303,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 근접 유닛 제한 체크
     if settings.maxMeleeUnits then
-        local meleeLimitCheck = CreateCheckListItem(checklist, "최대 근접 유닛 수 (탱커 포함): " .. settings.maxMeleeUnits .. "명", index)
+        local meleeLimitCheck = CreateCheckListItem(checklist, "Max Melee Units (incl. Tanks)", index)
         meleeLimitCheck:SetChecked(meleeCount <= settings.maxMeleeUnits)
         checklist.items[index] = meleeLimitCheck
         index = index + 1
@@ -313,7 +311,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 원거리 유닛 제한 체크
     if settings.maxRangedUnits then
-        local rangedLimitCheck = CreateCheckListItem(checklist, "최대 원거리 유닛 수: " .. settings.maxRangedUnits .. "명", index)
+        local rangedLimitCheck = CreateCheckListItem(checklist, "Max Ranged Units", index)
         rangedLimitCheck:SetChecked(rangedCount <= settings.maxRangedUnits)
         checklist.items[index] = rangedLimitCheck
         index = index + 1
@@ -343,7 +341,7 @@ end
 -- 체크리스트 UI 생성 함수
 function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
     if not dungeonName then
-        print("MythicDungeonCheckList: 던전 이름이 필요합니다.")
+        print("MythicDungeonCheckList: Dungeon name is required to open checklist.")
         return
     end
 
@@ -353,17 +351,13 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
         return
     end
 
+    print("OpenCheckListUI: Creating Checklist UI for", dungeonName)
+
     -- 체크리스트 UI 생성
     ChecklistUI = CreateFrame("Frame", "ChecklistUI", UIParent, "BasicFrameTemplate")
     ChecklistUI:SetSize(300, 600)
     ChecklistUI:SetPoint("CENTER")
     ChecklistUI.items = {}  -- 체크 항목을 저장할 테이블
-
-    -- ElvUI 스킨 적용
-    if E then
-        local S = E:GetModule('Skins')
-        S:HandleFrame(ChecklistUI)
-    end
 
     -- 프레임을 움직일 수 있도록 설정
     ChecklistUI:SetMovable(true)
@@ -382,7 +376,7 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
 
     local title = ChecklistUI:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     title:SetPoint("TOP", ChecklistUI, "TOP", 0, -10)
-    title:SetText(dungeonName .. " 체크리스트")
+    title:SetText(dungeonName .. " Checklist")
 
     -- 이벤트 프레임 생성
     ChecklistUI.eventFrame = CreateFrame("Frame")
@@ -390,21 +384,16 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
     ChecklistUI.eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     ChecklistUI.eventFrame:RegisterEvent("INSPECT_READY")
     ChecklistUI.eventFrame:SetScript("OnEvent", function(self, event, arg1)
+        print("ChecklistUI Event:", event)
         MythicDungeonCheckList.UpdateCheckList(dungeonName)
     end)
 
     -- 체크리스트 업데이트
+    print("OpenCheckListUI: Updating Checklist for", dungeonName)
     MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 프레임 위치 로드
     MythicDungeonCheckList.LoadFramePositions()
-end
-
--- 체크리스트 UI 닫기 함수 추가
-function MythicDungeonCheckList.CloseCheckListUI()
-    if ChecklistUI then
-        ChecklistUI:Hide()
-    end
 end
 
 -- 게임 시작 시 기본 던전 설정 초기화 및 프레임 위치 로드
@@ -420,26 +409,19 @@ local eventFrame = CreateFrame("Frame")
 
 -- 이벤트 등록
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
-eventFrame:RegisterEvent("LFG_LIST_ENTRY_REMOVED")  -- 파티 모집창 닫힘 이벤트
 eventFrame:SetScript("OnEvent", function(self, event, ...)
+    print("Event Triggered:", event)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         MythicDungeonCheckList:OnPartyListed()
-    elseif event == "LFG_LIST_ENTRY_REMOVED" then
-        MythicDungeonCheckList.CloseCheckListUI()
     end
 end)
 
 -- 활동 ID와 던전 이름 매핑 테이블 생성
 local activityIDToDungeonName = {
-    -- 실제 활동 ID와 던전 이름을 추가해야 합니다.
-    -- [1364] = "바위금고",
-    -- [1365] = "새벽인도자호",
-    -- [1366] = "티르너 사이드의 안개",
-    -- [1367] = "죽음의 상흔",
-    -- [1368] = "보랄러스 공성전",
-    -- [1369] = "그림 바톨",
-    -- [1370] = "실타래의 도시",
-    -- [1371] = "메아리의 도시 아라카라",
+    [1290] = "그림 바톨",
+    -- 다른 던전의 활동 ID와 이름을 추가합니다.
+    -- 예시:
+    -- [activityID] = "던전 이름",
 }
 
 -- 파티 등록 시 호출되는 함수
@@ -447,27 +429,30 @@ function MythicDungeonCheckList:OnPartyListed()
     -- 파티 등록 정보 가져오기
     local entryInfo = C_LFGList.GetActiveEntryInfo()
     if not entryInfo then
-        print("MythicDungeonCheckList: 활성화된 파티 목록이 없습니다.")
+        print("OnPartyListed: No active party listing.")
         return
     end
 
     -- 활동 ID 가져오기
     local activityID = entryInfo.activityID
-    print("현재 활동 ID는 다음과 같습니다:", activityID)
 
     -- 활동 ID를 사용하여 던전 이름 가져오기
     local dungeonName = activityIDToDungeonName[activityID]
     if not dungeonName then
-        print("MythicDungeonCheckList: 활동 ID로부터 던전 이름을 찾을 수 없습니다.")
+        print("MythicDungeonCheckList: Could not determine dungeon name from activity ID.")
         print("Activity ID:", activityID)
         return
     end
 
+    print("OnPartyListed: Dungeon Name -", dungeonName)
+
     -- 던전 이름이 유효한지 확인
     if not MythicDungeonDB[dungeonName] then
-        print("MythicDungeonCheckList: 알 수 없는 던전 이름입니다:", dungeonName)
+        print("MythicDungeonCheckList: Unknown dungeon name in party listing.")
         return
     end
+
+    print("OnPartyListed: Opening Checklist UI for", dungeonName)
 
     -- 체크리스트 UI 열기
     MythicDungeonCheckList.OpenCheckListUI(dungeonName)
@@ -475,3 +460,4 @@ end
 
 -- 네임스페이스를 전역 변수로 설정 (다른 파일에서 접근할 수 있도록)
 _G["MythicDungeonCheckList"] = MythicDungeonCheckList
+print("MythicDungeonCheckList.lua loaded")
