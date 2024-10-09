@@ -307,8 +307,6 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
         return
     end
 
-    print("OpenCheckListUI: Creating Checklist UI for", dungeonName)
-
     -- 체크리스트 UI 생성
     ChecklistUI = CreateFrame("Frame", "ChecklistUI", UIParent, "BasicFrameTemplate")
     ChecklistUI:SetSize(300, 600)
@@ -340,12 +338,10 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
     ChecklistUI.eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     ChecklistUI.eventFrame:RegisterEvent("INSPECT_READY")
     ChecklistUI.eventFrame:SetScript("OnEvent", function(self, event, arg1)
-        print("ChecklistUI Event:", event)
         MythicDungeonCheckList.UpdateCheckList(dungeonName)
     end)
 
     -- 체크리스트 업데이트
-    print("OpenCheckListUI: Updating Checklist for", dungeonName)
     MythicDungeonCheckList.UpdateCheckList(dungeonName)
 
     -- 프레임 위치 로드
@@ -367,7 +363,14 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
-        MythicDungeonCheckList:OnPartyListed()
+        local entryInfo = C_LFGList.GetActiveEntryInfo()
+        if entryInfo then
+            -- 파티가 등록되었으면 UI를 열기
+            MythicDungeonCheckList:OnPartyListed()
+        else
+            -- 파티 모집이 중단된 경우 UI 닫기
+            MythicDungeonCheckList.CloseCheckListUI()
+        end
     end
 end)
 
@@ -391,7 +394,6 @@ function MythicDungeonCheckList:OnPartyListed()
     -- 파티 등록 정보 가져오기
     local entryInfo = C_LFGList.GetActiveEntryInfo()
     if not entryInfo then
-        print("OnPartyListed: No active party listing.")
         return
     end
 
@@ -401,19 +403,23 @@ function MythicDungeonCheckList:OnPartyListed()
     -- 활동 ID를 사용하여 던전 이름 가져오기
     local dungeonName = activityIDToDungeonName[activityID]
     if not dungeonName then
-        print("MythicDungeonCheckList: Could not determine dungeon name from activity ID.")
-        print("Activity ID:", activityID)
         return
     end
 
     -- 던전 이름이 유효한지 확인
     if not MythicDungeonDB[dungeonName] then
-        print("MythicDungeonCheckList: Unknown dungeon name in party listing.")
         return
     end
 
     -- 체크리스트 UI 열기
     MythicDungeonCheckList.OpenCheckListUI(dungeonName)
+end
+
+-- 체크리스트 UI 닫기 함수 추가
+function MythicDungeonCheckList.CloseCheckListUI()
+    if ChecklistUI and ChecklistUI:IsShown() then
+        ChecklistUI:Hide()  -- UI 닫기
+    end
 end
 
 -- 네임스페이스를 전역 변수로 설정 (다른 파일에서 접근할 수 있도록)
