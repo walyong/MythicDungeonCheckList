@@ -24,6 +24,7 @@ local function CreateCheckListItem(parent, text, index)
     local check = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
     check:SetPoint("TOPLEFT", 20, -30 * index)
     check.text:SetText(text)
+    check:Disable()
     return check
 end
 
