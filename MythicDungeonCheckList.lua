@@ -132,12 +132,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 영웅심 및 전투부활 스킬 확인
     local hasHeroism, hasBattleRes = false, false
     for i = 1, GetNumGroupMembers() do
-        local unit
-        if IsInRaid() then
-            unit = "raid"..i
-        else
-            unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-        end
+        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
         local _, class = UnitClass(unit)
         if class == "SHAMAN" or class == "MAGE" or class == "HUNTER" or class == "EVOKER" then
             hasHeroism = true
@@ -160,21 +155,16 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 저주 해제 체크
     if settings.mustHaveCurse > 0 then
         local curseRemovalCheck = CreateCheckListItem(checklist, "Curse Removal (Must Have)", index)
-        local hasCurseRemoval = false
+        local curseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit
-            if IsInRaid() then
-                unit = "raid"..i
-            else
-                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-            end
+            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             local _, class = UnitClass(unit)
             if class == "MAGE" or class == "DRUID" or class == "SHAMAN" then
-                hasCurseRemoval = true
-                break
+                curseRemovalCount = curseRemovalCount + 1
             end
         end
-        curseRemovalCheck:SetChecked(hasCurseRemoval)
+        -- 파티 내 해제 가능한 직업 수가 던전에서 요구하는 수를 만족하는지 확인
+        curseRemovalCheck:SetChecked(curseRemovalCount >= settings.mustHaveCurse)
         checklist.items[index] = curseRemovalCheck
         index = index + 1
     end
@@ -182,25 +172,15 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 마법 해제 체크
     if settings.mustHaveMagic > 0 then
         local magicRemovalCheck = CreateCheckListItem(checklist, "Magic Removal (Must Have)", index)
-        local hasMagicRemoval = false
         local magicRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit
-            if IsInRaid() then
-                unit = "raid"..i
-            else
-                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-            end
+            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "SHAMAN" or class == "DRUID" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
                 magicRemovalCount = magicRemovalCount + 1
-                if magicRemovalCount >= settings.mustHaveMagic then
-                    hasMagicRemoval = true
-                    break
-                end
             end
         end
-        magicRemovalCheck:SetChecked(hasMagicRemoval)
+        magicRemovalCheck:SetChecked(magicRemovalCount >= settings.mustHaveMagic)
         checklist.items[index] = magicRemovalCheck
         index = index + 1
     end
@@ -208,21 +188,15 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 독 해제 체크
     if settings.mustHavePoison > 0 then
         local poisonRemovalCheck = CreateCheckListItem(checklist, "Poison Removal (Must Have)", index)
-        local hasPoisonRemoval = false
+        local poisonRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit
-            if IsInRaid() then
-                unit = "raid"..i
-            else
-                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-            end
+            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             local _, class = UnitClass(unit)
             if class == "DRUID" or class == "SHAMAN" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
-                hasPoisonRemoval = true
-                break
+                poisonRemovalCount = poisonRemovalCount + 1
             end
         end
-        poisonRemovalCheck:SetChecked(hasPoisonRemoval)
+        poisonRemovalCheck:SetChecked(poisonRemovalCount >= settings.mustHavePoison)
         checklist.items[index] = poisonRemovalCheck
         index = index + 1
     end
@@ -230,21 +204,15 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 질병 해제 체크
     if settings.mustHaveDisease > 0 then
         local diseaseRemovalCheck = CreateCheckListItem(checklist, "Disease Removal (Must Have)", index)
-        local hasDiseaseRemoval = false
+        local diseaseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit
-            if IsInRaid() then
-                unit = "raid"..i
-            else
-                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-            end
+            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "PALADIN" or class == "MONK" then
-                hasDiseaseRemoval = true
-                break
+                diseaseRemovalCount = diseaseRemovalCount + 1
             end
         end
-        diseaseRemovalCheck:SetChecked(hasDiseaseRemoval)
+        diseaseRemovalCheck:SetChecked(diseaseRemovalCount >= settings.mustHaveDisease)
         checklist.items[index] = diseaseRemovalCheck
         index = index + 1
     end
@@ -252,21 +220,15 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 격노 해제 체크
     if settings.mustHaveEnrage > 0 then
         local enrageRemovalCheck = CreateCheckListItem(checklist, "Enrage Dispel (Must Have)", index)
-        local hasEnrageRemoval = false
+        local enrageRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit
-            if IsInRaid() then
-                unit = "raid"..i
-            else
-                unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-            end
+            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
             local _, class = UnitClass(unit)
             if CanDispelEnrage(class) then
-                hasEnrageRemoval = true
-                break
+                enrageRemovalCount = enrageRemovalCount + 1
             end
         end
-        enrageRemovalCheck:SetChecked(hasEnrageRemoval)
+        enrageRemovalCheck:SetChecked(enrageRemovalCount >= settings.mustHaveEnrage)
         checklist.items[index] = enrageRemovalCheck
         index = index + 1
     end
@@ -275,12 +237,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local meleeCount, rangedCount = 0, 0
 
     for i = 1, GetNumGroupMembers() do
-        local unit
-        if IsInRaid() then
-            unit = "raid"..i
-        else
-            unit = (i == GetNumGroupMembers()) and "player" or "party"..i
-        end
+        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
         local role = UnitGroupRolesAssigned(unit)
         local _, class = UnitClass(unit)
         local spec = GetInspectSpecialization(unit)
@@ -318,6 +275,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         index = index + 1
     end
 end
+
 
 -- 프레임 위치 저장 함수 추가
 function MythicDungeonCheckList.SaveFramePositions()
