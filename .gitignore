@@ -1,2 +1,6 @@
 
 /.vscode
+.idea/misc.xml
+.idea/modules.xml
+.idea/MythicDungeonCheckList.iml
+.idea/vcs.xml

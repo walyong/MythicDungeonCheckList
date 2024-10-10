@@ -19,7 +19,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         maxRangedUnits = 5,
         mustHaveCurse = 0,
         mustHaveMagic = 0,
-        mustHavePoison = 0,
+        mustHavePoison = 1,
         mustHaveDisease = 0,
         mustHaveEnrage = 0
     },
@@ -64,7 +64,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         maxRangedUnits = 5,
         mustHaveCurse = 0,
         mustHaveMagic = 2,    -- 필요 마법 해제를 2로 설정
-        mustHavePoison = 0,
+        mustHavePoison = 1,
         mustHaveDisease = 0,
         mustHaveEnrage = 0
     },

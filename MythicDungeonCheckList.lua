@@ -97,6 +97,33 @@ function MythicDungeonCheckList.InitializeDungeonSettings()
     end
 end
 
+-- 어픽스 목록을 가져오는 함수
+local function GetActiveAffixes()
+    local affixes = C_MythicPlus.GetCurrentAffixes()
+    return affixes
+end
+
+-- 주간 어픽스 확인을 위한 함수
+function MythicDungeonCheckList.PrintActiveAffixes()
+    local activeAffixes = GetActiveAffixes()
+    if activeAffixes then
+        print("현재 주간 어픽스: ")
+        for _, affix in ipairs(activeAffixes) do
+            local affixID = affix.id
+            local affixName = C_ChallengeMode.GetAffixInfo(affixID)
+            print("Affix ID:", affixID, " - Affix Name:", affixName)
+        end
+    else
+        print("주간 어픽스를 불러오지 못했습니다.")
+    end
+end
+
+--Affix ID: 9  - Affix Name: 폭군
+--Affix ID: 10  - Affix Name: 경화
+--Affix ID: 152  - Affix Name: 도전자의 위기
+--Affix ID: 147  - Affix Name: 잘아타스의 기만
+--Affix ID: 160  - Affix Name: 잘아타스의 제안: 탐식
+
 -- 기본 설정으로 재설정하는 함수
 function MythicDungeonCheckList.ResetDungeonSettings()
     MythicDungeonDB = {}
@@ -231,7 +258,10 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         index = index + 1
     end
 
-    -- 3. 근거리/원거리 유닛 구성 체크 (우선순위 3)
+    -- 3. 주간 어픽스 기반 해제 요구 사항 추가 (우선순위 3)
+    MythicDungeonCheckList.PrintActiveAffixes()
+
+    -- 4. 근거리/원거리 유닛 구성 체크 (우선순위 4)
     local meleeCount, rangedCount = 0, 0
 
     for i = 1, GetNumGroupMembers() do
