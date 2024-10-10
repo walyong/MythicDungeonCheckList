@@ -103,20 +103,68 @@ local function GetActiveAffixes()
     return affixes
 end
 
--- 주간 어픽스 확인을 위한 함수
-function MythicDungeonCheckList.PrintActiveAffixes()
-    local activeAffixes = GetActiveAffixes()
-    if activeAffixes then
-        print("현재 주간 어픽스: ")
-        for _, affix in ipairs(activeAffixes) do
-            local affixID = affix.id
-            local affixName = C_ChallengeMode.GetAffixInfo(affixID)
-            print("Affix ID:", affixID, " - Affix Name:", affixName)
-        end
-    else
-        print("주간 어픽스를 불러오지 못했습니다.")
+-- 특정 해제 가능한 직업/스킬을 기반으로 점수 계산
+local function GetDispelScoreForUnit(unit)
+    local _, class = UnitClass(unit)
+    local spec = GetInspectSpecialization(unit)
+
+    -- 범위 해제 스킬 (3점)
+    if class == "PRIEST" and IsSpellKnown(32375, unit) then  -- 대규모 무효화
+        return 3
+    elseif class == "SHAMAN" and IsSpellKnown(383017, unit) then  -- 독정화 토템
+        return 3
     end
+
+    -- 단일 해제 스킬 (1점)
+    if class == "PRIEST" and IsSpellKnown(527, unit) then  -- 해악 무효화 (단일)
+        return 1
+    elseif class == "PALADIN" and IsSpellKnown(4987, unit) then  -- 성기사 해제
+        return 1
+    elseif class == "DRUID" and IsSpellKnown(2782, unit) then  -- 해독
+        return 1
+    elseif class == "SHAMAN" and IsSpellKnown(51886, unit) then  -- 정화의 물결 (단일)
+        return 1
+    elseif class == "MONK" and IsSpellKnown(115450, unit) then  -- 해독주
+        return 1
+    elseif class == "EVOKER" and IsSpellKnown(365585, unit) then  -- 불안정한 기운 해제
+        return 1
+    end
+
+    return 0  -- 해제 불가능한 경우 0점
 end
+
+-- 주간 어픽스에 따른 추가 체크리스트 항목 생성
+local function CheckAffix160DispelRequirement(checklist, index)
+    -- 총 해제 포인트를 계산할 변수
+    local totalDispelPoints = 0
+
+    -- 파티원 해제 점수 계산
+    for i = 1, GetNumGroupMembers() do
+        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+        totalDispelPoints = totalDispelPoints + GetDispelScoreForUnit(unit)
+    end
+
+    -- 체크리스트 항목 생성
+    local dispelCheck = CreateCheckListItem(checklist, "잘아타스의 제안: 탐식 해제 (" .. totalDispelPoints .. "/5점)", index)
+    dispelCheck:SetChecked(totalDispelPoints >= 5)
+    checklist.items[index] = dispelCheck
+    return index + 1  -- 다음 항목을 위한 인덱스 증가
+end
+
+---- 주간 어픽스 확인을 위한 함수
+--function MythicDungeonCheckList.PrintActiveAffixes()
+--    local activeAffixes = GetActiveAffixes()
+--    if activeAffixes then
+--        print("현재 주간 어픽스: ")
+--        for _, affix in ipairs(activeAffixes) do
+--            local affixID = affix.id
+--            local affixName = C_ChallengeMode.GetAffixInfo(affixID)
+--            print("Affix ID:", affixID, " - Affix Name:", affixName)
+--        end
+--    else
+--        print("주간 어픽스를 불러오지 못했습니다.")
+--    end
+--end
 
 --Affix ID: 9  - Affix Name: 폭군
 --Affix ID: 10  - Affix Name: 경화
@@ -258,8 +306,16 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         index = index + 1
     end
 
-    -- 3. 주간 어픽스 기반 해제 요구 사항 추가 (우선순위 3)
-    MythicDungeonCheckList.PrintActiveAffixes()
+    -- 3. 주간 어픽스 160 체크리스트 추가 (우선순위 3)
+    local activeAffixes = GetActiveAffixes()
+    if activeAffixes then
+        for _, affix in ipairs(activeAffixes) do
+            if affix.id == 160 then
+                -- 어픽스 160이 있을 경우 체크리스트에 추가
+                index = CheckAffix160DispelRequirement(checklist, index)
+            end
+        end
+    end
 
     -- 4. 근거리/원거리 유닛 구성 체크 (우선순위 4)
     local meleeCount, rangedCount = 0, 0
