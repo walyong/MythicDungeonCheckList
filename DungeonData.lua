@@ -39,7 +39,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         mustHaveMagic = 1,
         mustHavePoison = 1,
         mustHaveDisease = 0,
-        mustHaveEnrage = 1
+        mustHaveEnrage = 0
     },
     ["티르너 사이드의 안개"] = {
         maxMeleeUnits = 5,
@@ -54,10 +54,10 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         maxMeleeUnits = 5,
         maxRangedUnits = 5,
         mustHaveCurse = 0,
-        mustHaveMagic = 1,
+        mustHaveMagic = 0,
         mustHavePoison = 0,
-        mustHaveDisease = 1,
-        mustHaveEnrage = 1
+        mustHaveDisease = 0,
+        mustHaveEnrage = 0
     },
     ["보랄러스 공성전"] = {
         maxMeleeUnits = 3,    -- 최대 근접 유닛을 3으로 설정

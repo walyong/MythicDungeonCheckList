@@ -8,8 +8,12 @@ local DefaultDungeonSettings = MythicDungeonCheckListData.DefaultDungeonSettings
 
 -- 테이블 깊은 복사 함수 (지역 함수로 정의하고 이름 변경)
 local function DeepCopyTable(t, seen)
-    if type(t) ~= 'table' then return t end
-    if seen and seen[t] then return seen[t] end
+    if type(t) ~= 'table' then
+        return t
+    end
+    if seen and seen[t] then
+        return seen[t]
+    end
     local s = seen or {}
     local copy = {}
     s[t] = copy
@@ -30,30 +34,30 @@ end
 
 -- 근접 힐러 확인 함수 (지역 함수로 정의)
 local function IsMeleeHealer(class, spec)
-    return (class == "PALADIN" and spec == 65) or    -- 신성 성기사
-           (class == "MONK" and spec == 270)         -- 운무 수도사
+    return (class == "PALADIN" and spec == 65) or -- 신성 성기사
+            (class == "MONK" and spec == 270) -- 운무 수도사
 end
 
 -- 원거리 힐러 확인 함수 (지역 함수로 정의)
 local function IsRangedHealer(class, spec)
-    return (class == "DRUID" and spec == 105) or           -- 회복 드루이드
-           (class == "PRIEST" and (spec == 256 or spec == 257)) or  -- 수양 및 신성 사제
-           (class == "SHAMAN" and spec == 264) or           -- 복원 주술사
-           (class == "EVOKER" and spec == 1468)             -- Preservation Evoker
+    return (class == "DRUID" and spec == 105) or -- 회복 드루이드
+            (class == "PRIEST" and (spec == 256 or spec == 257)) or -- 수양 및 신성 사제
+            (class == "SHAMAN" and spec == 264) or -- 복원 주술사
+            (class == "EVOKER" and spec == 1468) -- Preservation Evoker
 end
 
 -- 근접 딜러 확인 함수 (지역 함수로 정의)
 local function IsMeleeDPS(class, spec)
     local meleeClasses = {
-        ["DEATHKNIGHT"] = {250, 251, 252}, -- 혈기, 냉기, 부정
-        ["DEMONHUNTER"] = {577},           -- 파멸
-        ["DRUID"] = {103},                 -- 야성
-        ["HUNTER"] = {255},                -- 생존
-        ["MONK"] = {269},                  -- 풍운
-        ["PALADIN"] = {70},                -- 징벌
-        ["ROGUE"] = {259, 260, 261},       -- 모든 특성
-        ["SHAMAN"] = {263},                -- 고양
-        ["WARRIOR"] = {71, 72}             -- 무기, 분노
+        ["DEATHKNIGHT"] = { 250, 251, 252 }, -- 혈기, 냉기, 부정
+        ["DEMONHUNTER"] = { 577 }, -- 파멸
+        ["DRUID"] = { 103 }, -- 야성
+        ["HUNTER"] = { 255 }, -- 생존
+        ["MONK"] = { 269 }, -- 풍운
+        ["PALADIN"] = { 70 }, -- 징벌
+        ["ROGUE"] = { 259, 260, 261 }, -- 모든 특성
+        ["SHAMAN"] = { 263 }, -- 고양
+        ["WARRIOR"] = { 71, 72 } -- 무기, 분노
     }
     return meleeClasses[class] and tContains(meleeClasses[class], spec)
 end
@@ -61,23 +65,23 @@ end
 -- 원거리 딜러 확인 함수 (지역 함수로 정의)
 local function IsRangedDPS(class, spec)
     local rangedClasses = {
-        ["DRUID"] = {102},                 -- 조화
-        ["HUNTER"] = {253, 254},           -- 야수, 사격
-        ["MAGE"] = {62, 63, 64},           -- 모든 특성
-        ["PRIEST"] = {258},                -- 암흑
-        ["SHAMAN"] = {262},                -- 정기
-        ["WARLOCK"] = {265, 266, 267},     -- 모든 특성
-        ["EVOKER"] = {1473}                -- Devastation
+        ["DRUID"] = { 102 }, -- 조화
+        ["HUNTER"] = { 253, 254 }, -- 야수, 사격
+        ["MAGE"] = { 62, 63, 64 }, -- 모든 특성
+        ["PRIEST"] = { 258 }, -- 암흑
+        ["SHAMAN"] = { 262 }, -- 정기
+        ["WARLOCK"] = { 265, 266, 267 }, -- 모든 특성
+        ["EVOKER"] = { 1473 } -- Devastation
     }
     return rangedClasses[class] and tContains(rangedClasses[class], spec)
 end
 
 -- 격노 해제를 할 수 있는지 확인하는 함수 (지역 함수로 정의)
 local function CanDispelEnrage(class)
-    return (class == "HUNTER" and IsSpellKnown(19801)) or   -- 사냥꾼 - 평정의 사격
-           (class == "DRUID" and IsSpellKnown(2908)) or     -- 드루이드 - 달래기
-           (class == "ROGUE" and IsSpellKnown(5938)) or     -- 도적 - 마취의 일격
-           (class == "EVOKER" and IsSpellKnown(374227))     -- 기원사 - 억제의 포효
+    return (class == "HUNTER" and IsSpellKnown(19801)) or -- 사냥꾼 - 평정의 사격
+            (class == "DRUID" and IsSpellKnown(2908)) or -- 드루이드 - 달래기
+            (class == "ROGUE" and IsSpellKnown(5938)) or -- 도적 - 마취의 일격
+            (class == "EVOKER" and IsSpellKnown(374227)) -- 기원사 - 억제의 포효
 end
 
 -- 기본 던전 설정을 적용하는 함수
@@ -106,27 +110,40 @@ end
 -- 특정 해제 가능한 직업/스킬을 기반으로 점수 계산
 local function GetDispelScoreForUnit(unit)
     local _, class = UnitClass(unit)
-    local spec = GetInspectSpecialization(unit)
 
     -- 범위 해제 스킬 (3점)
-    if class == "PRIEST" and IsSpellKnown(32375, unit) then  -- 대규모 무효화
+    if class == "PRIEST" then
+        -- 대규모 무효화
         return 3
-    elseif class == "SHAMAN" and IsSpellKnown(383017, unit) then  -- 독정화 토템
+    elseif class == "SHAMAN" then
+        -- 독정화 토템
         return 3
     end
 
     -- 단일 해제 스킬 (1점)
-    if class == "PRIEST" and IsSpellKnown(527, unit) then  -- 해악 무효화 (단일)
+    if class == "PRIEST" then
+        -- 해악 무효화 (단일)
         return 1
-    elseif class == "PALADIN" and IsSpellKnown(4987, unit) then  -- 성기사 해제
+    elseif class == "PALADIN" then
+        -- 성기사 해제
         return 1
-    elseif class == "DRUID" and IsSpellKnown(2782, unit) then  -- 해독
+    elseif class == "DRUID" then
+        -- 해독
         return 1
-    elseif class == "SHAMAN" and IsSpellKnown(51886, unit) then  -- 정화의 물결 (단일)
+    elseif class == "SHAMAN" then
+        -- 정화의 물결 (단일)
         return 1
-    elseif class == "MONK" and IsSpellKnown(115450, unit) then  -- 해독주
+    elseif class == "MONK" then
+        -- 해독주
         return 1
-    elseif class == "EVOKER" and IsSpellKnown(365585, unit) then  -- 불안정한 기운 해제
+    elseif class == "EVOKER" then
+        -- 불안정한 기운 해제
+        return 1
+    elseif class == "EVOKER" then
+        -- 불안정한 기운 해제
+        return 1
+    elseif class == "MAGE" then
+        -- 저주 해제
         return 1
     end
 
@@ -140,7 +157,7 @@ local function CheckAffix160DispelRequirement(checklist, index)
 
     -- 파티원 해제 점수 계산
     for i = 1, GetNumGroupMembers() do
-        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+        local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
         totalDispelPoints = totalDispelPoints + GetDispelScoreForUnit(unit)
     end
 
@@ -151,32 +168,84 @@ local function CheckAffix160DispelRequirement(checklist, index)
     return index + 1  -- 다음 항목을 위한 인덱스 증가
 end
 
----- 주간 어픽스 확인을 위한 함수
---function MythicDungeonCheckList.PrintActiveAffixes()
---    local activeAffixes = GetActiveAffixes()
---    if activeAffixes then
---        print("현재 주간 어픽스: ")
---        for _, affix in ipairs(activeAffixes) do
---            local affixID = affix.id
---            local affixName = C_ChallengeMode.GetAffixInfo(affixID)
---            print("Affix ID:", affixID, " - Affix Name:", affixName)
---        end
---    else
---        print("주간 어픽스를 불러오지 못했습니다.")
---    end
---end
+-- 해제 특성 확인 함수
+local function CheckDispelTalents(unit, dispelType)
+    local _, class = UnitClass(unit)
 
---Affix ID: 9  - Affix Name: 폭군
---Affix ID: 10  - Affix Name: 경화
---Affix ID: 152  - Affix Name: 도전자의 위기
---Affix ID: 147  - Affix Name: 잘아타스의 기만
---Affix ID: 160  - Affix Name: 잘아타스의 제안: 탐식
+    if dispelType == "Curse" then
+        if class == "MAGE" and not IsSpellKnown(475, unit) then
+            print(UnitName(unit) .. "님, 저주 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "DRUID" and not IsSpellKnown(2782, unit) then
+            print(UnitName(unit) .. "님, 저주 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "SHAMAN" and not IsSpellKnown(51886, unit) then
+            print(UnitName(unit) .. "님, 저주 해제를 위한 특성을 찍지 않았습니다.")
+        end
+    elseif dispelType == "Magic" then
+        if class == "PRIEST" and not IsSpellKnown(527, unit) then
+            print(UnitName(unit) .. "님, 마법 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "PALADIN" and not IsSpellKnown(4987, unit) then
+            print(UnitName(unit) .. "님, 마법 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "DRUID" and not IsSpellKnown(2782, unit) then
+            print(UnitName(unit) .. "님, 마법 해제를 위한 특성을 찍지 않았습니다.")
+        end
+    elseif dispelType == "Poison" then
+        if class == "DRUID" and not IsSpellKnown(2782, unit) then
+            print(UnitName(unit) .. "님, 독 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "SHAMAN" and not IsSpellKnown(51886, unit) then
+            print(UnitName(unit) .. "님, 독 해제를 위한 특성을 찍지 않았습니다.")
+        end
+    elseif dispelType == "Disease" then
+        if class == "PRIEST" and not IsSpellKnown(527, unit) then
+            print(UnitName(unit) .. "님, 질병 해제를 위한 특성을 찍지 않았습니다.")
+        elseif class == "PALADIN" and not IsSpellKnown(4987, unit) then
+            print(UnitName(unit) .. "님, 질병 해제를 위한 특성을 찍지 않았습니다.")
+        end
+    end
+end
 
--- 기본 설정으로 재설정하는 함수
-function MythicDungeonCheckList.ResetDungeonSettings()
-    MythicDungeonDB = {}
-    MythicDungeonCheckList.InitializeDungeonSettings()
-    print("All dungeon settings have been reset to default values.")
+-- 신화+ 던전 입장 시 해제 특성 체크
+local function CheckMythicPlusDispelTalents()
+    local currentZoneID = C_Map.GetBestMapForUnit("player")
+    if currentZoneID then
+        local dungeonName = GetDungeonNameByMapID(currentZoneID)
+        if dungeonName then
+            -- 던전의 해제 요구사항을 가져와서 각 파티원의 특성 체크
+            local settings = MythicDungeonDB[dungeonName]
+            if settings then
+                for i = 1, GetNumGroupMembers() do
+                    local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
+                    if settings.mustHaveCurse > 0 then
+                        CheckDispelTalents(unit, "Curse")
+                    end
+                    if settings.mustHaveMagic > 0 then
+                        CheckDispelTalents(unit, "Magic")
+                    end
+                    if settings.mustHavePoison > 0 then
+                        CheckDispelTalents(unit, "Poison")
+                    end
+                    if settings.mustHaveDisease > 0 then
+                        CheckDispelTalents(unit, "Disease")
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- 던전 이름을 맵 ID로 가져오는 함수
+function GetDungeonNameByMapID(mapID)
+    local dungeonMapToName = {
+        [1337] = "보랄러스 공성전", -- Boralus map ID
+        [1493] = "메아리의 도시 아라카라", -- Atal'Dazar map ID
+        [1502] = "새벽인도자호", -- Dawn of the Proudmoore map ID
+        [1515] = "바위금고", -- Vault of the Wardens map ID
+        [1466] = "실타래의 도시", -- The Motherlode map ID
+        [1762] = "티르너 사이드의 안개", -- Mist of Tirna Scithe map ID
+        [1688] = "죽음의 상흔", -- Necrotic Wake map ID
+        [1862] = "그림 바톨"              -- Grim Batol map ID
+        -- 다른 던전의 맵 ID를 여기 추가하세요
+    }
+    return dungeonMapToName[mapID]
 end
 
 -- 체크리스트 업데이트 함수
@@ -205,12 +274,12 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     -- 영웅심 및 전투부활 스킬 확인
     local hasHeroism, hasBattleRes = false, false
     for i = 1, GetNumGroupMembers() do
-        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+        local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
         local _, class = UnitClass(unit)
         if class == "SHAMAN" or class == "MAGE" or class == "HUNTER" or class == "EVOKER" then
             hasHeroism = true
         end
-        if class == "DRUID" or class == "DEATHKNIGHT" or class == "WARLOCK" or class == "EVOKER" then
+        if class == "DRUID" or class == "DEATHKNIGHT" or class == "WARLOCK" or class == "EVOKER" or class == "PALADIN" then
             hasBattleRes = true
         end
     end
@@ -231,7 +300,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         local curseRemovalCheck = CreateCheckListItem(checklist, "저주 해제 필요 (" .. settings.mustHaveCurse .. "명)", index)
         local curseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+            local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
             if class == "MAGE" or class == "DRUID" or class == "SHAMAN" then
                 curseRemovalCount = curseRemovalCount + 1
@@ -247,7 +316,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         local magicRemovalCheck = CreateCheckListItem(checklist, "마법 해제 필요 (" .. settings.mustHaveMagic .. "명)", index)
         local magicRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+            local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "SHAMAN" or class == "DRUID" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
                 magicRemovalCount = magicRemovalCount + 1
@@ -263,7 +332,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         local poisonRemovalCheck = CreateCheckListItem(checklist, "독 해제 필요 (" .. settings.mustHavePoison .. "명)", index)
         local poisonRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+            local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
             if class == "DRUID" or class == "SHAMAN" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
                 poisonRemovalCount = poisonRemovalCount + 1
@@ -279,7 +348,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         local diseaseRemovalCheck = CreateCheckListItem(checklist, "질병 해제 필요 (" .. settings.mustHaveDisease .. "명)", index)
         local diseaseRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+            local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
             if class == "PRIEST" or class == "PALADIN" or class == "MONK" then
                 diseaseRemovalCount = diseaseRemovalCount + 1
@@ -295,7 +364,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         local enrageRemovalCheck = CreateCheckListItem(checklist, "격노 해제 필요 (" .. settings.mustHaveEnrage .. "명)", index)
         local enrageRemovalCount = 0
         for i = 1, GetNumGroupMembers() do
-            local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+            local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
             if CanDispelEnrage(class) then
                 enrageRemovalCount = enrageRemovalCount + 1
@@ -321,7 +390,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local meleeCount, rangedCount = 0, 0
 
     for i = 1, GetNumGroupMembers() do
-        local unit = (i == GetNumGroupMembers()) and "player" or "party"..i
+        local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
         local role = UnitGroupRolesAssigned(unit)
         local _, class = UnitClass(unit)
         local spec = GetInspectSpecialization(unit)
@@ -447,6 +516,7 @@ local eventFrame = CreateFrame("Frame")
 
 -- 이벤트 등록
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA") -- 신화 던전 입장 시 발생하는 이벤트 등록
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         local entryInfo = C_LFGList.GetActiveEntryInfo()
@@ -457,6 +527,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- 파티 모집이 중단된 경우 UI 닫기
             MythicDungeonCheckList.CloseCheckListUI()
         end
+    elseif event == "ZONE_CHANGED_NEW_AREA" then
+        -- 신화 던전 입장 시 특성 체크
+        CheckMythicPlusDispelTalents()
     end
 end)
 
