@@ -146,29 +146,29 @@ function MythicDungeonCheckList.OpenDungeonSettingsUI()
     -- 필수 해제 체크박스
     local mustHaveCurse = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     mustHaveCurse:SetPoint("TOPLEFT", 20, -100)
-    mustHaveCurse.text:SetText("Must have Curse Removal")
+    mustHaveCurse.text:SetText("저주 해제")
 
     local mustHaveMagic = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     mustHaveMagic:SetPoint("TOPLEFT", 20, -130)
-    mustHaveMagic.text:SetText("Must have Magic Removal")
+    mustHaveMagic.text:SetText("마법 해제")
 
     local mustHavePoison = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     mustHavePoison:SetPoint("TOPLEFT", 20, -160)
-    mustHavePoison.text:SetText("Must have Poison Removal")
+    mustHavePoison.text:SetText("독 해제")
 
     local mustHaveDisease = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     mustHaveDisease:SetPoint("TOPLEFT", 20, -190)
-    mustHaveDisease.text:SetText("Must have Disease Removal")
+    mustHaveDisease.text:SetText("질병 해제")
 
     -- 격노 해제 체크박스 추가
     local mustHaveEnrage = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     mustHaveEnrage:SetPoint("TOPLEFT", 20, -220)
-    mustHaveEnrage.text:SetText("Must have Enrage Dispel")
+    mustHaveEnrage.text:SetText("격노 해제")
 
     -- 근접 유닛 최대 수 (탱커 포함) 체크박스
     local maxMeleeUnitsCheck = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     maxMeleeUnitsCheck:SetPoint("TOPLEFT", 20, -250)
-    maxMeleeUnitsCheck.text:SetText("Max Melee Units (including Tanks)")
+    maxMeleeUnitsCheck.text:SetText("최대 근접 유닛 (탱커 포함)")
 
     local maxMeleeUnitsInput = CreateFrame("EditBox", nil, settingsFrame, "InputBoxTemplate")
     maxMeleeUnitsInput:SetPoint("TOPLEFT", maxMeleeUnitsCheck, "TOPLEFT", 250, 0)
@@ -179,7 +179,7 @@ function MythicDungeonCheckList.OpenDungeonSettingsUI()
     -- 원거리 유닛 최대 수 체크박스
     local maxRangedUnitsCheck = CreateFrame("CheckButton", nil, settingsFrame, "UICheckButtonTemplate")
     maxRangedUnitsCheck:SetPoint("TOPLEFT", 20, -280)
-    maxRangedUnitsCheck.text:SetText("Max Ranged Units")
+    maxRangedUnitsCheck.text:SetText("최대 원거리 유닛")
 
     local maxRangedUnitsInput = CreateFrame("EditBox", nil, settingsFrame, "InputBoxTemplate")
     maxRangedUnitsInput:SetPoint("TOPLEFT", maxRangedUnitsCheck, "TOPLEFT", 250, 0)
