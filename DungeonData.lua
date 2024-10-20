@@ -10,7 +10,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         maxRangedUnits = 5,
         mustHaveCurse = 0,
         mustHaveMagic = 0,
-        mustHavePoison = 0,
+        mustHavePoison = 1,
         mustHaveDisease = 0,
         mustHaveEnrage = 0
     },
@@ -71,7 +71,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
     ["그림 바톨"] = {
         maxMeleeUnits = 5,
         maxRangedUnits = 5,
-        mustHaveCurse = 0,
+        mustHaveCurse = 1,
         mustHaveMagic = 0,
         mustHavePoison = 0,
         mustHaveDisease = 0,

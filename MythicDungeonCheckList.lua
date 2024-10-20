@@ -279,7 +279,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         if class == "SHAMAN" or class == "MAGE" or class == "HUNTER" or class == "EVOKER" then
             hasHeroism = true
         end
-        if class == "DRUID" or class == "DEATHKNIGHT" or class == "WARLOCK" or class == "EVOKER" or class == "PALADIN" then
+        if class == "DRUID" or class == "DEATHKNIGHT" or class == "WARLOCK" or class == "PALADIN" then
             hasBattleRes = true
         end
     end
@@ -302,7 +302,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
-            if class == "MAGE" or class == "DRUID" or class == "SHAMAN" then
+            if class == "MAGE" or class == "DRUID" or class == "SHAMAN" or class == "EVOKER" then
                 curseRemovalCount = curseRemovalCount + 1
             end
         end
@@ -334,7 +334,7 @@ function MythicDungeonCheckList.UpdateCheckList(dungeonName)
         for i = 1, GetNumGroupMembers() do
             local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
             local _, class = UnitClass(unit)
-            if class == "DRUID" or class == "SHAMAN" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
+            if class == "SHAMAN" or class == "DRUID" or class == "PALADIN" or class == "MONK" or class == "EVOKER" then
                 poisonRemovalCount = poisonRemovalCount + 1
             end
         end
