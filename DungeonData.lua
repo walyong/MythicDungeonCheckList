@@ -39,7 +39,7 @@ MythicDungeonCheckListData.DefaultDungeonSettings = {
         mustHaveMagic = 1,
         mustHavePoison = 1,
         mustHaveDisease = 0,
-        mustHaveEnrage = 0
+        mustHaveEnrage = 1
     },
     ["티르너 사이드의 안개"] = {
         maxMeleeUnits = 5,
