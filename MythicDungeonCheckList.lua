@@ -84,7 +84,6 @@ local function CanDispelEnrage(class)
             (class == "EVOKER" and IsSpellKnown(374227)) -- 기원사 - 억제의 포효
 end
 
--- 기본 던전 설정을 적용하는 함수
 function MythicDungeonCheckList.InitializeDungeonSettings()
     MythicDungeonDB = MythicDungeonDB or {}
     for dungeonName, settings in pairs(DefaultDungeonSettings) do
@@ -464,7 +463,7 @@ function MythicDungeonCheckList.OpenCheckListUI(dungeonName)
 
     -- 체크리스트 UI 생성
     ChecklistUI = CreateFrame("Frame", "ChecklistUI", UIParent, "BasicFrameTemplate")
-    ChecklistUI:SetSize(300, 600)
+    ChecklistUI:SetSize(300, 500)
     ChecklistUI:SetPoint("CENTER")
     ChecklistUI.items = {}  -- 체크 항목을 저장할 테이블
 
