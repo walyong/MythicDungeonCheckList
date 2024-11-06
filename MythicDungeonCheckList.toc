@@ -6,5 +6,6 @@
 ## SavedVariables: MythicDungeonDB, MythicDungeonCheckListPositions
 
 DungeonData.lua
+ClassData.lua
 MythicDungeonCheckList.lua
 DungeonSettingsUI.lua
