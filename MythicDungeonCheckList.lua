@@ -84,51 +84,6 @@ local function CheckDispelTalents(unit, dispelType)
     end
 end
 
--- 신화+ 던전 입장 시 해제 특성 체크
-local function CheckMythicPlusDispelTalents()
-    local currentZoneID = C_Map.GetBestMapForUnit("player")
-    if currentZoneID then
-        local dungeonName = GetDungeonNameByMapID(currentZoneID)
-        if dungeonName then
-            -- 던전의 해제 요구사항을 가져와서 각 파티원의 특성 체크
-            local settings = MythicDungeonDB[dungeonName]
-            if settings then
-                for i = 1, GetNumGroupMembers() do
-                    local unit = (i == GetNumGroupMembers()) and "player" or "party" .. i
-                    if settings.mustHaveCurse > 0 then
-                        CheckDispelTalents(unit, "Curse")
-                    end
-                    if settings.mustHaveMagic > 0 then
-                        CheckDispelTalents(unit, "Magic")
-                    end
-                    if settings.mustHavePoison > 0 then
-                        CheckDispelTalents(unit, "Poison")
-                    end
-                    if settings.mustHaveDisease > 0 then
-                        CheckDispelTalents(unit, "Disease")
-                    end
-                end
-            end
-        end
-    end
-end
-
--- 던전 이름을 맵 ID로 가져오는 함수
-function GetDungeonNameByMapID(mapID)
-    local dungeonMapToName = {
-        [1337] = "보랄러스 공성전", -- Boralus map ID
-        [1493] = "메아리의 도시 아라카라", -- Atal'Dazar map ID
-        [1502] = "새벽인도자호", -- Dawn of the Proudmoore map ID
-        [1515] = "바위금고", -- Vault of the Wardens map ID
-        [1466] = "실타래의 도시", -- The Motherlode map ID
-        [1762] = "티르너 사이드의 안개", -- Mist of Tirna Scithe map ID
-        [1688] = "죽음의 상흔", -- Necrotic Wake map ID
-        [1862] = "그림 바톨"              -- Grim Batol map ID
-        -- 다른 던전의 맵 ID를 여기 추가하세요
-    }
-    return dungeonMapToName[mapID]
-end
-
 -- 체크리스트 업데이트 함수
 function MythicDungeonCheckList.UpdateCheckList(dungeonName)
     local settings = MythicDungeonDB[dungeonName]
@@ -245,7 +200,6 @@ local eventFrame = CreateFrame("Frame")
 
 -- 이벤트 등록
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
-eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA") -- 신화 던전 입장 시 발생하는 이벤트 등록
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         local entryInfo = C_LFGList.GetActiveEntryInfo()
@@ -256,26 +210,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- 파티 모집이 중단된 경우 UI 닫기
             MythicDungeonCheckList.CloseCheckListUI()
         end
-    elseif event == "ZONE_CHANGED_NEW_AREA" then
-        -- 신화 던전 입장 시 특성 체크
-        CheckMythicPlusDispelTalents()
     end
 end)
-
--- 활동 ID와 던전 이름 매핑 테이블 생성
-local activityIDToDungeonName = {
-    [1290] = "그림 바톨",
-    [1284] = "메아리의 도시 아라카라",
-    [1285] = "새벽인도자호",
-    [1287] = "바위금고",
-    [1288] = "실타래의 도시",
-    [703] = "티르너 사이드의 안개",
-    [713] = "죽음의 상흔",
-    [534] = "보랄러스 공성전"
-    -- 다른 던전의 활동 ID와 이름을 추가합니다.
-    -- 예시:
-    -- [activityID] = "던전 이름",
-}
 
 -- 파티 등록 시 호출되는 함수
 function MythicDungeonCheckList:OnPartyListed()
@@ -289,7 +225,7 @@ function MythicDungeonCheckList:OnPartyListed()
     local activityID = entryInfo.activityID
 
     -- 활동 ID를 사용하여 던전 이름 가져오기
-    local dungeonName = activityIDToDungeonName[activityID]
+    local dungeonName = MythicDungeonCheckListData.activityIDToDungeonName[activityID]
     if not dungeonName then
         return
     end
