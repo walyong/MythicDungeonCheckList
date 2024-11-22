@@ -47,10 +47,10 @@ end
 
 -- 격노 해제를 할 수 있는지 확인하는 함수 (지역 함수로 정의)
 local function CanDispelEnrage(class)
-    return (class == "HUNTER" and IsSpellKnown(19801)) or -- 사냥꾼 - 평정의 사격
-            (class == "DRUID" and IsSpellKnown(2908)) or -- 드루이드 - 달래기
-            (class == "ROGUE" and IsSpellKnown(5938)) or -- 도적 - 마취의 일격
-            (class == "EVOKER" and IsSpellKnown(374227)) -- 기원사 - 억제의 포효
+    return (class == "HUNTER") or -- 사냥꾼 - 평정의 사격
+            (class == "DRUID") or -- 드루이드 - 달래기
+            (class == "ROGUE") or -- 도적 - 마취의 일격
+            (class == "EVOKER") -- 기원사 - 억제의 포효
 end
 
 function MythicDungeonCheckListClassData.CheckHeroismAndBattleRes(checklist, index)
